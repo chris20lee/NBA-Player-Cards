@@ -7,10 +7,10 @@ from time import sleep
 from warnings import warn
 
 # Variables
-DATA_DIR = '/Users/chrislee/PyCharmProjects/Web-Scrape-Basketball-Reference'
-START_YEAR = 2020
+DATA_DIR = '/Users/chrislee/PyCharmProjects/NBA-Player-Cards'
+START_YEAR = 2021
 END_YEAR = 2024
-STAT_TYPES = ['_totals', '_per_game', '_per_minute', '_per_poss', '_advanced']
+STAT_TYPES = ['_per_poss', '_advanced']
 
 # Functions
 def get_html(year, stat_type):
@@ -27,9 +27,7 @@ def get_html(year, stat_type):
 # Get variable headers for the statistics from the page
 def get_header(soup):
     header = [i.text for i in soup.find_all('tr')[0].find_all('th')]
-    # header.append('Year')
     header.extend(['year', 'player_id'])
-    # header = header[1:] # Drop rank column
     header = [item.replace('%', '_percent').replace('/', '_').lower() for item in header]
     return header
 
@@ -39,12 +37,8 @@ def get_stats(soup, headers):
     rows = soup.find_all('tbody')[0].find_all('tr')
     for i in range(len(rows)):
         player_id = [a['href'] for a in rows[i].find_all('td')[0].find_all('a', href=True) if a.text]
-        if len(player_id) != 0:
-            clean_id = player_id[0][11:][:-5]
-        else:
-            clean_id = 'league_average'
         stats.append([j.text for j in rows[i] if j.text != ' '])
-        stats[i].extend([year, clean_id])
+        stats[i].extend([year, player_id])
 
     stats = pd.DataFrame(stats, columns=headers)
     return stats
@@ -77,7 +71,7 @@ for stat_type in STAT_TYPES:
     # Loop through the years
     for year in range(START_YEAR, END_YEAR + 1):
         # Slow down the web scrape
-        sleep(randint(1, 3))
+        sleep(randint(1, 4))
 
         # Get website
         html_soup = get_html(year, stat_type)
@@ -85,9 +79,6 @@ for stat_type in STAT_TYPES:
         # Get header
         if year == START_YEAR:
             headers = get_header(html_soup)
-
-        # Get player stats
-        # player_stats = player_stats.append(get_stats(html_soup, headers), ignore_index=True)
 
         player_stats = pd.concat([player_stats, pd.DataFrame(get_stats(html_soup, headers))], ignore_index=True)
 
@@ -97,40 +88,29 @@ for stat_type in STAT_TYPES:
     format_dataframe(player_stats, stat_type)
 
 # Read all stats into their own variables
-totals = pd.read_csv('{}/Data/nba_player_stats_totals.csv'.format(DATA_DIR))
-per_game = pd.read_csv('{}/Data/nba_player_stats_per_game.csv'.format(DATA_DIR))
-per_min = pd.read_csv('{}/Data/nba_player_stats_per_minute.csv'.format(DATA_DIR))
-per_poss = pd.read_csv('{}/Data/nba_player_stats_per_poss.csv'.format(DATA_DIR))
-advanced = pd.read_csv('{}/Data/nba_player_stats_advanced.csv'.format(DATA_DIR))
+per_poss = pd.read_csv('{}/Data/nba_player_stats_per_poss.csv'.format(DATA_DIR), encoding='utf-8')
+advanced = pd.read_csv('{}/Data/nba_player_stats_advanced.csv'.format(DATA_DIR), encoding='utf-8')
 
-# Join all 5 stats tables into 1 massive table
 # Merge per game stats into total stats table
-all_data = totals.merge(per_game, on=['player', 'pos', 'age', 'team', 'g', 'gs', 'fg_percent', '3p_percent',
-                                        '2p_percent', 'efg_percent', 'ft_percent', 'awards', 'year', 'player_id']
-                        , how='inner')
-all_data.columns = all_data.columns.str.replace('_x', '').str.replace('_y', '_pg')
-
-# Merge in per 36 minutes stats
-all_data = all_data.merge(per_min, on=['player', 'pos', 'age', 'team', 'g', 'gs', 'fg_percent', '3p_percent',
-                                       '2p_percent', 'ft_percent', 'awards', 'year', 'player_id'], how='inner')
-all_data.columns = all_data.columns.str.replace('_x', '').str.replace('_y', '_p36m')
-
-# Merge in per 100 possessions stats
-all_data = all_data.merge(per_poss, on=['player', 'pos', 'age', 'team', 'g', 'gs', 'fg_percent', '3p_percent',
-                                        '2p_percent', 'ft_percent', 'awards', 'year', 'player_id'], how='inner')
-all_data.columns = all_data.columns.str.replace('_x', '').str.replace('_y', '_p100p')
-
-# Merge in advanced stats
-all_data = all_data.merge(advanced, on=['player', 'pos', 'age', 'team', 'g', 'mp', 'awards', 'year', 'player_id']
-                          , how='inner')
-all_data.columns = all_data.columns.str.replace('_x', '_tot').str.replace('_y', '_adv')
+all_data = per_poss.merge(advanced, on=['player', 'age', 'team', 'pos', 'g', 'gs', 'mp'], how='inner')
+all_data.columns = all_data.columns.str.replace('_x', '')
 
 # Drop league average rows
-all_data = all_data.loc[all_data['rk_tot'] != 0]
+all_data = all_data.loc[all_data['rk'] != 0]
+
+# Remove players who got traded and keep the aggregated stats THIS SHOW MOVE TO LATER PART
+all_data['count'] = all_data.groupby('player').cumcount()
+all_data = all_data.loc[all_data['count'] == 0]
 
 # Drop rk column
-all_data = all_data.drop('rk_tot', axis=1)
+all_data = all_data.drop(['rk', 'g', 'gs', 'mp', 'fg', 'fga', 'fg_percent', '3p', '3pa', '3p_percent', '2p', '2pa',
+                          '2p_percent', 'efg_percent', 'ft', 'fta', 'ft_percent', 'orb', 'drb', 'trb', 'ast', 'stl',
+                          'blk', 'tov', 'pf', 'pts', 'awards', 'rk_y', '3par', 'ftr', 'orb_percent', 'drb_percent',
+                          'trb_percent', 'ast_percent', 'stl_percent', 'blk_percent', 'tov_percent', 'usg_percent',
+                          'ws_48', 'awards_y', 'year_y', 'player_id_y'], axis=1)
+
+all_data.apply(lambda x: pd.api.types.infer_dtype(x.values))
 
 # Save csv
-all_data.to_csv('{}/Data/all_nba_player_stats.csv'.format(DATA_DIR), index=False)
-print('Full NBA player stats table completed for {}-{}'.format(START_YEAR, END_YEAR))
+all_data.to_csv('{}/Data/combined_nba_player_stats.csv'.format(DATA_DIR), index=False)
+print('Combined NBA player stats table completed for {}-{}'.format(START_YEAR, END_YEAR))
