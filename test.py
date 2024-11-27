@@ -29,8 +29,8 @@ from io import BytesIO
 # DRtg
 
 
-url = 'https://www.basketball-reference.com/players/b/barnesc01.html'
-# url = 'https://www.basketball-reference.com/contracts/TOR.html'
+# url = 'https://www.basketball-reference.com/players/b/barnesc01.html'
+url = 'https://www.basketball-reference.com/contracts/TOR.html'
 response = get(url, timeout=5)
 soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -38,35 +38,38 @@ soup = BeautifulSoup(response.text, 'html.parser')
 if response.status_code != 200:
     warn('Error: Status code {}'.format(response.status_code))
 
-# Get player picture url
-x = soup.find_all('img')[1].get('src')
-url = x
+# # Get player picture url
+# x = soup.find_all('img')[1].get('src')
+# url = x
+#
+# # Fetch the image using requests
+# response = requests.get(url)
+#
+# # Check if the request was successful
+# if response.status_code == 200:
+#     # Open the image using PIL
+#     img = Image.open(BytesIO(response.content))
+#
+#     # Convert image to numpy array
+#     img_array = np.array(img)
+#
+#     # Display the image using matplotlib
+#     plt.imshow(img_array)
+#     plt.axis('off')  # Hide axes
+#     plt.show()
+# else:
+#     print("Failed to retrieve the image.")
 
-# Fetch the image using requests
-response = requests.get(url)
-
-# Check if the request was successful
-if response.status_code == 200:
-    # Open the image using PIL
-    img = Image.open(BytesIO(response.content))
-
-    # Convert image to numpy array
-    img_array = np.array(img)
-
-    # Display the image using matplotlib
-    plt.imshow(img_array)
-    plt.axis('off')  # Hide axes
-    plt.show()
-else:
-    print("Failed to retrieve the image.")
-
-# # Player ID and team ID
-# rows = soup.find('tbody').find_all('tr')
-# for i in range(len(rows)):
-#     player_id = [a['href'] for a in rows[i].find_all('a', href=True) if a.text]
-#     x = rows[i].find_all('td')
-#     sal = [a.text for a in x]
-#     if len(sal) == 1:
-#         sal.append('$0')
-#     cur_sal = sal[1]
-#     print(player_id, cur_sal)
+# Player ID and team ID
+rows = soup.find('tbody').find_all('tr')
+print(len(rows))
+for i in range(len(rows)):
+    x = rows[i].find_all('a', href=True)
+    player_id = [a['href'] for a in x if a.text]
+    sal = [a.text for a in rows[i].find_all('td')]
+    if len(sal) == 1:
+        sal.append('')
+    if len(player_id) == 0:
+        player_id = ['blank']
+    print(player_id[0], sal[1])
+    # print(player_id, sal)

@@ -10,12 +10,12 @@ from warnings import warn
 DATA_DIR = '/Users/chrislee/PyCharmProjects/NBA-Player-Cards'
 START_YEAR = 2021
 END_YEAR = 2024
-STAT_TYPES = ['_per_poss', '_advanced']
+STAT_TYPES = ['per_poss', 'advanced']
 
 # Functions
 def get_html(year, stat_type):
     # Get website
-    url = ('https://www.basketball-reference.com/leagues/NBA_{}{}.html'.format(year, stat_type))
+    url = ('https://www.basketball-reference.com/leagues/NBA_{}_{}.html'.format(year, stat_type))
     response = get(url, timeout=5)
     soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -63,7 +63,7 @@ def format_dataframe(player_stats, stat_type):
     player_stats = player_stats.fillna(0)
 
     # Save to csv
-    player_stats.to_csv('{}/Data/nba_player_stats{}.csv'.format(DATA_DIR, stat_type), index=False)
+    player_stats.to_csv('{}/Data/nba_player_stats_{}.csv'.format(DATA_DIR, stat_type), index=False)
 
 # Main loop to get player statistics for all stat types for years of interest
 for stat_type in STAT_TYPES:
@@ -112,5 +112,5 @@ all_data = all_data.drop(['rk', 'g', 'gs', 'mp', 'fg', 'fga', 'fg_percent', '3p'
 all_data.apply(lambda x: pd.api.types.infer_dtype(x.values))
 
 # Save csv
-all_data.to_csv('{}/Data/combined_nba_player_stats.csv'.format(DATA_DIR), index=False)
+all_data.to_csv('{}/Data/nba_player_stats_combined.csv'.format(DATA_DIR), index=False)
 print('Combined NBA player stats table completed for {}-{}'.format(START_YEAR, END_YEAR))
