@@ -8,8 +8,8 @@ from warnings import warn
 
 # Variables
 DATA_DIR = '/Users/chrislee/PyCharmProjects/NBA-Player-Cards'
-START_YEAR = 2021
-END_YEAR = 2024
+START_YEAR = 2022
+END_YEAR = 2025
 STAT_TYPES = ['per_poss', 'advanced']
 
 # Functions
@@ -168,7 +168,7 @@ print('Combined NBA player stats table completed for {}-{}'.format(START_YEAR, E
 teams = all_data['team'].unique()
 teams = [team for team in teams if not any(char.isdigit() for char in team)]
 teams = sorted(teams)
-teams = teams[27:30]
+# teams = teams[27:30]
 # print(teams)
 
 salaries = get_salaries(teams)
