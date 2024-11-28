@@ -1,61 +1,48 @@
-# https://jfresh.substack.com/p/2022-nhl-player-cards-explainer
+########################################################################################################################
+# 2st Graph
+########################################################################################################################
+cols = ref_player[['season', 'ortg_perc_rk', 'drtg_perc_rk']]
 
-#Imports
-from bs4 import BeautifulSoup
-import matplotlib.pyplot as plt
-from matplotlib.ticker import PercentFormatter
-import numpy as np
-import pandas as pd
-from random import randint
-from requests import get
-from time import sleep
-from warnings import warn
-import matplotlib.pyplot as plt
-import requests
-from PIL import Image
-from io import BytesIO
+ref_player.plot(kind='line', x='season', y='ws_perc_rk', marker='o', color='r', linewidth=3.5, legend=None).grid(axis='y')
+plt.gcf().set_size_inches(5, 3)
+plt.title('Win Shares Percentile Rank', fontdict={'fontsize': 15, 'fontweight': 'bold'})
+plt.xlabel('')
+plt.ylabel('')
+plt.xticks(fontsize=9)
+plt.yticks(fontsize=9)
+plt.ylim(0, 1)
+plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+plt.margins(0.2, 0.2)
+plt.locator_params(axis='y', nbins=4)
+plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=True)
+plt.tick_params(axis='y', which='both', right=False, left=False, labelleft=True)
+for pos in ['right', 'top', 'left']:
+    plt.gca().spines[pos].set_visible(False)
+plt.tight_layout()
+plt.show()
+# plt.savefig('{}/{} in {}.png'.format(DATA_DIR, title, country), dpi=dpi_fig)
+plt.close()
 
-# WS
-# PER
-# TS%
-# USG%
-# OWS
-# DWS
-# OBPM
-# DBPM
-# BPM
-# VORP
-# ORtg
-# DRtg
-
-
-url = 'https://www.basketball-reference.com/players/b/barnesc01.html'
-response = get(url, timeout=5)
-soup = BeautifulSoup(response.text, 'html.parser')
-
-# Warning for non-200 status codes
-if response.status_code != 200:
-    warn('Error: Status code {}'.format(response.status_code))
-
-# Get player picture url
-x = soup.find_all('img')[1].get('src')
-url = x
-print(url)
-
-# Fetch the image using requests
-response = requests.get(url)
-
-# Check if the request was successful
-if response.status_code == 200:
-    # Open the image using PIL
-    img = Image.open(BytesIO(response.content))
-
-    # Convert image to numpy array
-    img_array = np.array(img)
-
-    # Display the image using matplotlib
-    plt.imshow(img_array)
-    plt.axis('off')  # Hide axes
-    plt.show()
-else:
-    print("Failed to retrieve the image.")
+########################################################################################################################
+# 2nd Graph
+########################################################################################################################
+ref_player.plot(kind='line', x='season', y=['ortg_perc_rk', 'drtg_perc_rk'], marker='o', color=['b', 'r'], linewidth=3.5, legend=None).grid(axis='y')
+# cols.plot(kind='line', x='season', marker='o', color=['b', 'r'], linewidth=3.5, legend=None).grid(axis='y')
+plt.gcf().set_size_inches(5, 3)
+plt.title('Off Rating vs Def Rating', fontdict={'fontsize': 15, 'fontweight': 'bold'})
+plt.xlabel('')
+plt.ylabel('')
+plt.xticks(fontsize=9)
+plt.yticks(fontsize=9)
+plt.ylim(0, 1)
+plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+plt.margins(0.2, 0.2)
+plt.locator_params(axis='y', nbins=4)
+plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=True)
+plt.tick_params(axis='y', which='both', right=False, left=False, labelleft=True)
+for pos in ['right', 'top', 'left']:
+    plt.gca().spines[pos].set_visible(False)
+plt.tight_layout()
+plt.show()
+# plt.savefig('{}/{} in {}.png'.format(DATA_DIR, title, country), dpi=dpi_fig)
+plt.close()

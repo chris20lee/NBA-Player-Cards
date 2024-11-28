@@ -50,11 +50,12 @@ def get_salaries(teams_list):
                 player_id = [a['href'] for a in rows[i].find_all('a', href=True) if a.text]
                 sal = [a.text for a in rows[i].find_all('td')]
                 season = [i.text for i in soup.find_all('tr')[1].find_all('th')][2]
+                season_short = season[2:5] + season[-2:]
                 if len(sal) == 1:
                     sal.append('$0')
                 if len(player_id) == 0:
                     player_id = ['blank']
-                salaries.append([player_id[0], sal[1], season])
+                salaries.append([player_id[0], sal[1], team, season_short])
                 # salaries.append([player_id[0], sal[1], get_image_url(player_id[0])])
                 # print('  Completed {}'.format(player_id[0]))
 
@@ -72,7 +73,7 @@ def get_salaries(teams_list):
 # Get the player statistics for the stat type
 def get_stats(soup, headers, year):
     stats = []
-    season = str(year - 1) + '-' + str(year)
+    season = (str(year - 1))[-2:] + '-' + (str(year))[-2:]
     rows = soup.find_all('tbody')[0].find_all('tr')
     for i in range(len(rows)):
         player_id = [a['href'] for a in rows[i].find_all('td')[0].find_all('a', href=True) if a.text]
@@ -168,11 +169,11 @@ teams = all_data['team'].unique()
 teams = [team for team in teams if not any(char.isdigit() for char in team)]
 teams = sorted(teams)
 teams = teams[27:30]
-print(teams)
+# print(teams)
 
 salaries = get_salaries(teams)
 
-salaries = pd.DataFrame(salaries, columns=['player_id', 'salary', 'season'])
+salaries = pd.DataFrame(salaries, columns=['player_id', 'salary', 'team', 'season'])
 # salaries = pd.DataFrame(salaries, columns=['player_id', 'salary', 'image_url'])
 
 # Drop blank rows
