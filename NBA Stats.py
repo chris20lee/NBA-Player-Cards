@@ -52,14 +52,12 @@ def get_salaries(teams_list):
                 season = [i.text for i in soup.find_all('tr')[1].find_all('th')][2]
                 season_short = season[2:5] + season[-2:]
                 if len(sal) == 1:
-                    sal.append('$0')
+                    sal.append(0)
                 if len(player_id) == 0:
                     player_id = ['blank']
                 salaries.append([player_id[0], sal[1], team, season_short])
-                # salaries.append([player_id[0], sal[1], get_image_url(player_id[0])])
-                # print('  Completed {}'.format(player_id[0]))
 
-            print('{} added to salary table'.format(team))
+            print('  {} added to salary table'.format(team))
 
         except:
             pass
@@ -68,6 +66,7 @@ def get_salaries(teams_list):
         if response.status_code != 200:
             warn('Error: Status code {}'.format(response.status_code))
 
+    print('Salary table completed')
     return salaries
 
 # Get the player statistics for the stat type
@@ -104,7 +103,7 @@ for stat_type in STAT_TYPES:
         player_stats = pd.concat([player_stats, pd.DataFrame(get_stats(html_soup, headers, year))]
                                  , ignore_index=True)
 
-        print('{} completed for {} table'.format(year, stat_type))
+        print('  {} completed for {} table'.format(year, stat_type))
 
     player_stats = player_stats.copy()
 
@@ -149,7 +148,13 @@ all_data['count'] = all_data.groupby(['year', 'season', 'player_id']).cumcount()
 all_data = all_data.loc[all_data['count'] == 0]
 
 # Drop unused columns
-all_data = all_data.drop(['rk', 'g', 'gs', 'mp', 'fg', 'fga', 'fg_percent', '3p', '3pa', '3p_percent', '2p', '2pa',
+# all_data = all_data.drop(['rk', 'g', 'gs', 'mp', 'fg', 'fga', 'fg_percent', '3p', '3pa', '3p_percent', '2p', '2pa',
+#                           '2p_percent', 'efg_percent', 'ft', 'fta', 'ft_percent', 'orb', 'drb', 'trb', 'ast', 'stl',
+#                           'blk', 'tov', 'pf', 'pts', 'awards', 'rk_y', '3par', 'ftr', 'orb_percent', 'drb_percent',
+#                           'trb_percent', 'ast_percent', 'stl_percent', 'blk_percent', 'tov_percent', 'usg_percent',
+#                           'ws_48', 'awards_y', 'count'], axis=1)
+
+all_data = all_data.drop(['rk', 'fg', 'fga', 'fg_percent', '3p', '3pa', '3p_percent', '2p', '2pa',
                           '2p_percent', 'efg_percent', 'ft', 'fta', 'ft_percent', 'orb', 'drb', 'trb', 'ast', 'stl',
                           'blk', 'tov', 'pf', 'pts', 'awards', 'rk_y', '3par', 'ftr', 'orb_percent', 'drb_percent',
                           'trb_percent', 'ast_percent', 'stl_percent', 'blk_percent', 'tov_percent', 'usg_percent',
@@ -169,16 +174,14 @@ teams = all_data['team'].unique()
 teams = [team for team in teams if not any(char.isdigit() for char in team)]
 teams = sorted(teams)
 # teams = teams[27:30]
-# print(teams)
 
 salaries = get_salaries(teams)
 
-salaries = pd.DataFrame(salaries, columns=['player_id', 'salary', 'team', 'season'])
-# salaries = pd.DataFrame(salaries, columns=['player_id', 'salary', 'image_url'])
+salaries = pd.DataFrame(salaries, columns=['player_id', 'salary', 'current_team', 'season'])
 
 # Drop blank rows
 salaries = salaries.loc[salaries['player_id'] != 'blank']
 
-salaries = salaries.replace('', '$0')
+salaries = salaries.replace('', 0)
 
 salaries.to_csv('{}/Data/nba_player_salaries.csv'.format(DATA_DIR), index=False)
