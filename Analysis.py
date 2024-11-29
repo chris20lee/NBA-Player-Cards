@@ -18,11 +18,12 @@ import requests
 import time
 from PIL import Image
 from io import BytesIO
+import ftfy
 
 DATA_DIR = '/Users/chrislee/PyCharmProjects/NBA-Player-Cards'
 
-player = 'Jalen Brunson'
-year = 2025
+player = '/players/j/jokicni01.html'
+year = 2024
 
 time_stamp = time.strftime('%Y-%m-%d', time.gmtime())
 
@@ -65,25 +66,32 @@ data['gs_perc'] = data.apply(lambda x: x['gs'] / x['g'], axis=1)
 data['amp'] = data.apply(lambda x: x['mp'] / x['g'], axis=1)
 data['type'] = data.apply(lambda x: 'Starter' if x['gs_perc'] > 0.75 and x['amp'] > 24 else 'Bench', axis=1)
 
+data['fixed_name'] = data.apply(lambda x: ftfy.fix_text(x['player']), axis=1)
+
 # Compute the percentile ranks
 cols_dict = {'ortg':True, 'drtg':False, 'per':True, 'ts_percent':True, 'ows':True, 'dws':True, 'ws':True, 'obpm':True,
              'dbpm':True, 'bpm':True, 'vorp':True}
 for k, v in cols_dict.items():
     data['{}_perc_rk'.format(k)] = data.groupby(['year', 'season'])[k].rank(pct=True, ascending=v)
 
-ref_player = data.loc[(data['player'] == player) & (data['year'] <= year) & (data['year'] >= year - 2)]
+ref_player = data.loc[(data['player_id'] == player) & (data['year'] <= year) & (data['year'] >= year - 2)]
+
+x = data['player_id'].unique()
+print(x)
+print(len(x))
 
 ########################################################################################################################
 # Make Subplot
 ########################################################################################################################
 
 # Get the values for the player to feed into the player card
-player_id = ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['player_id'].values[0]
-player_position = ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['pos'].values[0]
-player_age = ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['age'].values[0]
-player_type = ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['type'].values[0]
+player_name = ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['fixed_name'].values[0]
+player_id = ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['player_id'].values[0]
+player_position = ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['pos'].values[0]
+player_age = ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['age'].values[0]
+player_type = ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['type'].values[0]
 
-player_team = ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['current_team'].values[0]
+player_team = ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['current_team'].values[0]
 try:
     if np.isnan(player_team):
         player_team = 'Unknown'
@@ -91,31 +99,31 @@ except:
     pass
 
 
-player_salary = ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['salary'].values[0]
+player_salary = ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['salary'].values[0]
 player_salary = float(str(player_salary).replace('$', '').replace(',', ''))
 if np.isnan(player_salary):
     player_salary = 'Unknown'
 else:
     player_salary = '${}M'.format(round(int(player_salary) / 1000000), 2)
 
-player_ws = int(ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['ws_perc_rk'].values[0] * 100)
-player_ows = int(ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['ows_perc_rk'].values[0] * 100)
-player_dws = int(ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['dws_perc_rk'].values[0] * 100)
-player_per = int(ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['per_perc_rk'].values[0] * 100)
-player_ts_percent = int(ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['ts_percent_perc_rk'].values[0] * 100)
-player_vorp = int(ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['vorp_perc_rk'].values[0] * 100)
-player_obpm = int(ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['obpm_perc_rk'].values[0] * 100)
-player_dbpm = int(ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['dbpm_perc_rk'].values[0] * 100)
-player_bpm = int(ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['bpm_perc_rk'].values[0] * 100)
-player_ortg = int(ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['ortg_perc_rk'].values[0] * 100)
-player_drtg = int(ref_player[(ref_player['player'] == player) & (ref_player['year'] == year)]['drtg_perc_rk'].values[0] * 100)
+player_ws = int(ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['ws_perc_rk'].values[0] * 100)
+player_ows = int(ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['ows_perc_rk'].values[0] * 100)
+player_dws = int(ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['dws_perc_rk'].values[0] * 100)
+player_per = int(ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['per_perc_rk'].values[0] * 100)
+player_ts_percent = int(ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['ts_percent_perc_rk'].values[0] * 100)
+player_vorp = int(ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['vorp_perc_rk'].values[0] * 100)
+player_obpm = int(ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['obpm_perc_rk'].values[0] * 100)
+player_dbpm = int(ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['dbpm_perc_rk'].values[0] * 100)
+player_bpm = int(ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['bpm_perc_rk'].values[0] * 100)
+player_ortg = int(ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['ortg_perc_rk'].values[0] * 100)
+player_drtg = int(ref_player[(ref_player['player_id'] == player) & (ref_player['year'] == year)]['drtg_perc_rk'].values[0] * 100)
 
 # Create a new figure
 fig = plt.figure(figsize=(8, 5))
 
 ax0 = fig.add_axes([0.03, 0.03, 0.61, 0.94])
 # Hard coded text
-ax0.text(0, 1, player, fontdict={'fontsize': 22, 'fontweight': 'bold'}, ha='left', va='top')
+ax0.text(0, 1, player_name, fontdict={'fontsize': 22, 'fontweight': 'bold'}, ha='left', va='top')
 ax0.text(0.43, 0.78, 'WS %', fontdict={'fontsize': 12, 'fontstyle': 'italic'}, ha='center', va='center')
 ax0.text(0.7, 0.85, 'Pos:', fontdict={'fontsize': 12, 'fontstyle': 'italic'}, ha='right', va='center')
 ax0.text(0.7, 0.77, 'Age:', fontdict={'fontsize': 12, 'fontstyle': 'italic'}, ha='right', va='center')
@@ -248,4 +256,5 @@ ax3.annotate(" Rating vs", xy=(406, 168), xycoords='figure points', size=13, wei
 ax3.annotate(" Def", xy=(479, 168), xycoords='figure points', size=13, color=colour_scale(0), weight="bold")
 ax3.annotate(" Rating", xy=(509, 168), xycoords='figure points', size=13, weight="bold")
 
+# plt.savefig('{}/Player Cards/{}_{}_{}'.format(DATA_DIR, player_name, year - 1, year), dpi=2000)
 plt.show()
