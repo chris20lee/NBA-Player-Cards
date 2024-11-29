@@ -8,7 +8,7 @@ from warnings import warn
 
 # Variables
 DATA_DIR = '/Users/chrislee/PyCharmProjects/NBA-Player-Cards'
-START_YEAR = 2022
+START_YEAR = 2020
 END_YEAR = 2025
 STAT_TYPES = ['per_poss', 'advanced']
 
