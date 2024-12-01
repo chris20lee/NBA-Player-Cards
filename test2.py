@@ -76,8 +76,12 @@ for k, v in cols_dict.items():
 data.to_csv('{}/Data/test.csv'.format(DATA_DIR), index=False)
 
 players = data['player_id'].unique()
-players = players[7:17]
-print(players)
+players = players[6:7]
+for x in players:
+    print(x)
+    ref_player = data.loc[(data['player_id'] == x) & (data['year'] <= year) & (data['year'] >= year - 2)]
+    print(ref_player)
+    ref_player.to_csv('{}/Data/test{}.csv'.format(DATA_DIR, year), index=False)
 
 for player in players:
     ref_player = data.loc[(data['player_id'] == player) & (data['year'] <= year) & (data['year'] >= year - 2)]

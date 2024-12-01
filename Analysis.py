@@ -22,7 +22,7 @@ import ftfy
 
 DATA_DIR = '/Users/chrislee/PyCharmProjects/NBA-Player-Cards'
 
-player = '/players/j/jokicni01.html'
+player = '/players/g/grahade01.html'
 year = 2024
 
 time_stamp = time.strftime('%Y-%m-%d', time.gmtime())
@@ -76,9 +76,12 @@ for k, v in cols_dict.items():
 
 ref_player = data.loc[(data['player_id'] == player) & (data['year'] <= year) & (data['year'] >= year - 2)]
 
-x = data['player_id'].unique()
-print(x)
-print(len(x))
+players = data['player_id'].unique()
+players = players[6:17]
+for x in players:
+    print(x)
+
+print(player)
 
 ########################################################################################################################
 # Make Subplot
